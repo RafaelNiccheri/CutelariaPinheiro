@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block title %}Novo Produto Acabado{% endblock %}
+{% block content %}
+<h3>Novo Produto Acabado</h3>
+<form method="POST">
+  <!-- código_faca, tipo, material_lamina, material_cabo, quantidades e observações -->
+  <div class="form-row">
+    <div class="form-group col-md-4">
+      <label>Código da faca</label>
+      <input name="codigo_faca" class="form-control" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label>Tipo</label>
+      <input name="tipo" class="form-control" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label>Material da lâmina</label>
+      <input name="material_lamina" class="form-control" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-4">
+      <label>Material do cabo</label>
+      <input name="material_cabo" class="form-control" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label>Disp.</label>
+      <input type="number" name="quantidade_disponivel" class="form-control" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label>Reserv.</label>
+      <input type="number" name="quantidade_reservada" class="form-control" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Vend. Mês</label>
+    <input type="number" name="quantidade_vendida_mes" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Observações</label>
+    <textarea name="observacoes" class="form-control"></textarea>
+  </div>
+  <button class="btn btn-primary">Salvar</button>
+</form>
+{% endblock %}

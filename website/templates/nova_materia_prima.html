@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block title %}Nova Matéria-Prima{% endblock %}
+{% block content %}
+<h3>Nova Matéria-Prima</h3>
+<form method="POST">
+  <div class="form-group">
+    <label>Código do item</label>
+    <input name="codigo_item" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Tipo de material</label>
+    <input name="tipo_material" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Unidade</label>
+    <input name="unidade" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Quantidade em estoque</label>
+    <input type="number" step="0.01" name="quantidade_estoque" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Ponto de reposição</label>
+    <input type="number" step="0.01" name="ponto_reposicao" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Fornecedor</label>
+    <input name="fornecedor" class="form-control">
+  </div>
+  <div class="form-group">
+    <label>Data última entrada</label>
+    <input type="date" name="data_ultima_entrada" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label>Observações</label>
+    <textarea name="observacoes" class="form-control"></textarea>
+  </div>
+  <button class="btn btn-primary">Salvar</button>
+</form>
+{% endblock %}

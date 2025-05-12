@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block title %}Nova Ordem de Serviço{% endblock %}
+{% block content %}
+<h3>Nova Ordem de Serviço</h3>
+<form method="POST">
+  <div class="form-row">
+    <div class="form-group col-md-4">
+      <label>Nº da OS</label>
+      <input name="numero_os" class="form-control" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label>Produto</label>
+      <select name="produto_id" class="form-control" required>
+        {% for p in produtos %}
+        <option value="{{ p.id }}">{{ p.codigo_faca }} – {{ p.tipo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group col-md-4">
+      <label>Quantidade</label>
+      <input type="number" name="quantidade" class="form-control" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Materiais necessários</label>
+    <textarea name="materiais_necessarios" class="form-control" required></textarea>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label>Início da produção</label>
+      <input type="date" name="data_inicio_producao" class="form-control" required>
+    </div>
+    <div class="form-group col-md-6">
+      <label>Previsão conclusão</label>
+      <input type="date" name="data_prevista_conclusao" class="form-control" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label>Responsável</label>
+      <input name="responsavel" class="form-control" required>
+    </div>
+    <div class="form-group col-md-6">
+      <label>Status</label>
+      <input name="status" class="form-control" required>
+    </div>
+  </div>
+  <button class="btn btn-primary">Salvar</button>
+</form>
+{% endblock %}
