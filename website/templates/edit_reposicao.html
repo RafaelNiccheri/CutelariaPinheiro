@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Editar Reposição #{{ reposicao.id }}{% endblock %}
+
+{% block content %}
+<h2>Editar Reposição #{{ reposicao.id }}</h2>
+<form method="POST">
+  <div class="form-group">
+    <label>Código da Matéria-Prima</label>
+    <input type="text" class="form-control"
+           value="{{ reposicao.materia.codigo_item }} – {{ reposicao.materia.tipo_material }}"
+           disabled>
+  </div>
+  <div class="form-group">
+    <label>Quantidade a Repor</label>
+    <input type="number" step="any" class="form-control"
+           value="{{ reposicao.quantidade_reposicao }}" disabled>
+  </div>
+  <div class="form-group">
+    <label for="status">Status</label>
+    <select name="status" id="status" class="form-control">
+      {% for s in ['solicitado','em trânsito','recebido'] %}
+      <option value="{{ s }}"
+        {% if reposicao.status == s %}selected{% endif %}>
+        {{ s }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-primary">Salvar</button>
+  <a href="{{ url_for('views.gestao') }}" class="btn btn-link">Cancelar</a>
+</form>
+{% endblock %}

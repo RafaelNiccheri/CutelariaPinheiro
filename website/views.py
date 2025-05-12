@@ -1,38 +1,43 @@
 # website/views.py
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
-from . import db
+import re
 import json
 from datetime import date, datetime
+from flask import (
+    Blueprint, render_template, request,
+    redirect, url_for, flash, jsonify
+)
+from flask_login import login_required, current_user
 from sqlalchemy import func
+
+from . import db
 from .models import (
     Note,
-    User,
     MateriaPrima,
     ProdutoAcabado,
     PedidoVenda,
-    OrdemServico
+    OrdemServico,
+    ReposicaoMateriaPrima
 )
 
 views = Blueprint('views', __name__)
 
-# ── Notes Home & Create ────────────────────────────────────────────────
-@views.route('/', methods=['GET','POST'])
+# ── Home / Notes ────────────────────────────────────────────────
+@views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
     if request.method == 'POST':
         note_text = request.form.get('note')
         if not note_text or len(note_text) < 1:
-            flash('Note is too short!', category='error')
+            flash('Nota muito curta!', 'error')
         else:
             new_note = Note(data=note_text, user_id=current_user.id)
             db.session.add(new_note)
             db.session.commit()
-            flash('Note added!', category='success')
+            flash('Nota adicionada!', 'success')
 
     notes = Note.query.filter_by(user_id=current_user.id).all()
-    return render_template("home.html", user=current_user, notes=notes)
+    return render_template('home.html', user=current_user, notes=notes)
 
 @views.route('/delete-note', methods=['POST'])
 def delete_note():
@@ -41,36 +46,37 @@ def delete_note():
     if note and note.user_id == current_user.id:
         db.session.delete(note)
         db.session.commit()
-    return jsonify({})
+    return jsonify({}), 200
 
-# ── Gestão Dashboard ───────────────────────────────────────────────────
+# ── Dashboard de Gestão ───────────────────────────────────────────
 @views.route('/gestao')
 @login_required
 def gestao():
-    # Core lists
     materias   = MateriaPrima.query.all()
     produtos   = ProdutoAcabado.query.all()
     pedidos    = PedidoVenda.query.all()
     ordens     = OrdemServico.query.all()
+    reposicoes = ReposicaoMateriaPrima.query.all()
 
-    # Alertas / indicadores
-    itens_baixo_estoque = MateriaPrima.query\
-        .filter(MateriaPrima.quantidade_estoque < MateriaPrima.ponto_reposicao)\
+    itens_baixo_estoque = MateriaPrima.query \
+        .filter(MateriaPrima.quantidade_estoque < MateriaPrima.ponto_reposicao) \
         .all()
 
-    pedidos_vencidos = PedidoVenda.query\
+    pedidos_vencidos = PedidoVenda.query \
         .filter(
             PedidoVenda.data_prevista_entrega < date.today(),
             PedidoVenda.status != 'entregue'
-        ).all()
+        ) \
+        .all()
 
-    producoes_atrasadas = OrdemServico.query\
+    producoes_atrasadas = OrdemServico.query \
         .filter(
             OrdemServico.data_prevista_conclusao < date.today(),
             OrdemServico.status != 'concluida'
-        ).all()
+        ) \
+        .all()
 
-    total_pedidos_andamento = PedidoVenda.query\
+    total_pedidos_andamento = PedidoVenda.query \
         .filter(PedidoVenda.status.in_(
             ['recebido','produção','pronto','enviado']
         )).count()
@@ -88,6 +94,7 @@ def gestao():
         produtos=produtos,
         pedidos=pedidos,
         ordens=ordens,
+        reposicoes=reposicoes,
         itens_baixo_estoque=itens_baixo_estoque,
         pedidos_vencidos=pedidos_vencidos,
         producoes_atrasadas=producoes_atrasadas,
@@ -95,7 +102,7 @@ def gestao():
         vendas_mes=vendas_mes
     )
 
-# ── “+ Novo” Routes for Gestão ─────────────────────────────────────────
+# ── Formulários “+ Novo” ───────────────────────────────────────────
 @views.route('/gestao/mp/novo', methods=['GET','POST'])
 @login_required
 def nova_materia_prima():
@@ -112,7 +119,7 @@ def nova_materia_prima():
         )
         db.session.add(m)
         db.session.commit()
-        flash('Matéria-prima cadastrada com sucesso!', 'success')
+        flash('Matéria-prima cadastrada!', 'success')
         return redirect(url_for('views.gestao'))
     return render_template('nova_materia_prima.html', user=current_user)
 
@@ -132,7 +139,7 @@ def novo_produto_acabado():
         )
         db.session.add(p)
         db.session.commit()
-        flash('Produto acabado cadastrado com sucesso!', 'success')
+        flash('Produto acabado cadastrado!', 'success')
         return redirect(url_for('views.gestao'))
     return render_template('novo_produto_acabado.html', user=current_user)
 
@@ -154,7 +161,7 @@ def novo_pedido_venda():
         )
         db.session.add(ped)
         db.session.commit()
-        flash('Pedido/venda cadastrado com sucesso!', 'success')
+        flash('Pedido/venda cadastrado!', 'success')
         return redirect(url_for('views.gestao'))
     return render_template('novo_pedido_venda.html', user=current_user)
 
@@ -163,19 +170,86 @@ def novo_pedido_venda():
 def nova_ordem_servico():
     if request.method == 'POST':
         os_ = OrdemServico(
-            numero_os                = request.form['numero_os'],
-            produto_id               = int(request.form['produto_id']),
-            quantidade               = int(request.form['quantidade']),
-            materiais_necessarios    = request.form['materiais_necessarios'],
-            data_inicio_producao     = date.fromisoformat(request.form['data_inicio_producao']),
-            data_prevista_conclusao  = date.fromisoformat(request.form['data_prevista_conclusao']),
-            responsavel              = request.form['responsavel'],
-            status                   = request.form['status']
+            numero_os               = request.form['numero_os'],
+            produto_id              = int(request.form['produto_id']),
+            quantidade              = int(request.form['quantidade']),
+            materias_necessarios   = request.form['materiais_necessarios'],
+            data_inicio_producao    = date.fromisoformat(request.form['data_inicio_producao']),
+            data_prevista_conclusao = date.fromisoformat(request.form['data_prevista_conclusao']),
+            responsavel             = request.form['responsavel'],
+            status                  = request.form['status']
         )
         db.session.add(os_)
+        raw = request.form['materiais_necessarios']
+        pairs = re.findall(r'(\w+)\s*[x×]\s*([\d\.]+)', raw)
+        if not pairs:
+            flash("Formato inválido em Materiais necessários.", 'error')
+            db.session.rollback()
+            return redirect(url_for('views.nova_ordem_servico'))
+        for code, qty_text in pairs:
+            consumed = float(qty_text)
+            mat = MateriaPrima.query.filter_by(codigo_item=code).first()
+            if not mat:
+                flash(f"Matéria-prima \u201C{code}\u201D não encontrada.", 'error')
+                db.session.rollback()
+                return redirect(url_for('views.nova_ordem_servico'))
+            mat.quantidade_estoque = max(mat.quantidade_estoque - consumed, 0.0)
+            db.session.add(mat)
         db.session.commit()
-        flash('Ordem de serviço cadastrada com sucesso!', 'success')
+        flash('Ordem de serviço cadastrada e estoque atualizado!', 'success')
         return redirect(url_for('views.gestao'))
-
     produtos = ProdutoAcabado.query.all()
     return render_template('nova_ordem_servico.html', user=current_user, produtos=produtos)
+
+@views.route('/gestao/reposicao/novo', methods=['GET','POST'])
+@login_required
+def nova_reposicao_materia_prima():
+    if request.method == 'POST':
+        rp = ReposicaoMateriaPrima(
+            materia_id              = int(request.form['materia_id']),
+            quantidade_reposicao    = float(request.form['quantidade_reposicao']),
+            data_solicitacao        = date.fromisoformat(request.form['data_solicitacao']),
+            data_previsao_reposicao = date.fromisoformat(request.form['data_previsao_reposicao']),
+            fornecedor              = request.form.get('fornecedor'),
+            status                  = request.form['status'],
+            observacoes             = request.form.get('observacoes')
+        )
+        db.session.add(rp)
+        mat = MateriaPrima.query.get(rp.materia_id)
+        if mat:
+            mat.quantidade_estoque += rp.quantidade_reposicao
+            db.session.add(mat)
+        db.session.commit()
+        flash('Requisição de reposição cadastrada e estoque atualizado!', 'success')
+        return redirect(url_for('views.gestao'))
+    materias = MateriaPrima.query.all()
+    return render_template(
+        'nova_reposicao.html',
+        user=current_user,
+        materias=materias,
+        date=date
+    )
+
+@views.route('/gestao/reposicao/edit/<int:rp_id>', methods=['GET','POST'])
+@login_required
+def edit_reposicao_materia_prima(rp_id):
+    rp = ReposicaoMateriaPrima.query.get_or_404(rp_id)
+    old_status = rp.status
+
+    if request.method == 'POST':
+        new_status = request.form['status']
+        rp.status = new_status
+
+        mat = MateriaPrima.query.get(rp.materia_id)
+        if mat:
+            if old_status != 'recebido' and new_status == 'recebido':
+                mat.quantidade_estoque += rp.quantidade_reposicao
+            elif old_status == 'recebido' and new_status in ['solicitado', 'em trânsito']:
+                mat.quantidade_estoque = max( mat.quantidade_estoque - rp.quantidade_reposicao, 0.0 )
+            db.session.add(mat)
+
+        db.session.commit()
+        flash(f'Status da reposição #{rp.id} atualizado para "{rp.status}" e estoque ajustado.', 'success')
+        return redirect(url_for('views.gestao'))
+
+    return render_template('edit_reposicao.html', user=current_user, reposicao=rp)

@@ -3,33 +3,37 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from os import path
 from flask_login import LoginManager
 from authlib.integrations.flask_client import OAuth
 
-db    = SQLAlchemy()
+db = SQLAlchemy()
+login_manager = LoginManager()
 oauth = OAuth()
 
-DB_NOTES      = "database.db"
+DB_NOTES = "database.db"
 DB_MANAGEMENT = "management.db"
 
 def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = '#maiorcampeaodobrasil'
+    app = Flask(__name__, instance_relative_config=True)
 
-    # Banco de notas (default)
+    # ─── Configurações gerais ───────────────────────────────────────
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '#maiorcampeaodobrasil')
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_NOTES}"
-    # Banco de gestão (bind 'management')
     app.config['SQLALCHEMY_BINDS'] = {
         'management': f"sqlite:///{DB_MANAGEMENT}"
     }
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Credenciais Google OAuth
+    # ─── Credenciais OAuth (Google) ─────────────────────────────────
     app.config['GOOGLE_CLIENT_ID']     = os.environ.get('GOOGLE_CLIENT_ID')
     app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
 
-    # Inicializa extensões
+    # ─── Inicializa extensões ────────────────────────────────────────
     db.init_app(app)
+
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
     oauth.init_app(app)
     oauth.register(
         name='google',
@@ -39,44 +43,21 @@ def create_app():
         client_kwargs={'scope': 'openid email profile'}
     )
 
-    login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
-
-    # Carregador de usuário
+    # ─── User Loader ─────────────────────────────────────────────────
     from .models import User
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Registro de blueprints
+    # ─── Registra Blueprints ─────────────────────────────────────────
     from .views import views
     from .auth  import auth
     app.register_blueprint(views)
     app.register_blueprint(auth)
 
-    # Cria os bancos se ainda não existirem
-    create_notes_database(app)
-    create_management_database(app)
+    # ─── Cria todas as tabelas (default + binds) ─────────────────────
+    with app.app_context():
+        db.create_all()
+        print("🏗️  Todas as tabelas foram criadas (default + management)!")
 
     return app
-
-def create_notes_database(app):
-    """Cria apenas o banco de notas (database.db) se não existir."""
-    if not path.exists('website/' + DB_NOTES):
-        with app.app_context():
-            engine = db.engine  # engine padrão
-            from .models import Note, User
-            Note.__table__.create(bind=engine, checkfirst=True)
-            User.__table__.create(bind=engine, checkfirst=True)
-        print(f'Created {DB_NOTES}!')
-
-def create_management_database(app):
-    """Cria apenas o banco de gestão (management.db) se não existir."""
-    if not path.exists('website/' + DB_MANAGEMENT):
-        with app.app_context():
-            engine = db.get_engine(bind='management')
-            from .models import MateriaPrima, ProdutoAcabado, PedidoVenda, OrdemServico
-            for model in (MateriaPrima, ProdutoAcabado, PedidoVenda, OrdemServico):
-                model.__table__.create(bind=engine, checkfirst=True)
-        print(f'Created {DB_MANAGEMENT}!')

@@ -1,3 +1,4 @@
+<!-- website/templates/gestao.html -->
 {% extends "base.html" %}
 {% block title %}Gestão – Cutelaria{% endblock %}
 
@@ -6,34 +7,43 @@
 
 <ul class="nav nav-tabs" id="gestaoTabs" role="tablist">
   <li class="nav-item">
-    <a class="nav-link active" id="mp-tab" data-toggle="tab" href="#mp" role="tab">Matéria-Prima</a>
+    <a class="nav-link active" id="tab-mp" data-toggle="tab" href="#mp" role="tab">Matéria-Prima</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="pa-tab" data-toggle="tab" href="#pa" role="tab">Produtos Acabados</a>
+    <a class="nav-link" id="tab-pa" data-toggle="tab" href="#pa" role="tab">Produtos Acabados</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="pv-tab" data-toggle="tab" href="#pv" role="tab">Pedidos / Vendas</a>
+    <a class="nav-link" id="tab-pv" data-toggle="tab" href="#pv" role="tab">Pedidos / Vendas</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="os-tab" data-toggle="tab" href="#os" role="tab">Ordem de Serviço</a>
+    <a class="nav-link" id="tab-os" data-toggle="tab" href="#os" role="tab">Ordem de Serviço</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="alertas-tab" data-toggle="tab" href="#alertas" role="tab">Alertas & Indicadores</a>
+    <a class="nav-link" id="tab-reposicao" data-toggle="tab" href="#reposicao" role="tab">Reposição</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="tab-alertas" data-toggle="tab" href="#alertas" role="tab">Alertas & Indicadores</a>
   </li>
 </ul>
 
 <div class="tab-content mt-3">
-  <!-- MATÉRIA-PRIMA -->
+
+  <!-- Matéria-Prima -->
   <div class="tab-pane fade show active" id="mp" role="tabpanel">
-    <a href="{{ url_for('views.nova_materia_prima') }}"
-       class="btn btn-sm btn-success mb-2">
+    <a href="{{ url_for('views.nova_materia_prima') }}" class="btn btn-sm btn-success mb-2">
       + Matéria-Prima
     </a>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Código</th><th>Tipo</th><th>Unidade</th><th>Qtd. Estoque</th>
-          <th>Ponto Rep.</th><th>Fornecedor</th><th>Últ. Entrada</th><th>Obs</th>
+          <th>Código</th>
+          <th>Tipo</th>
+          <th>Unidade</th>
+          <th>Qtd. Estoque</th>
+          <th>Ponto Rep.</th>
+          <th>Fornecedor</th>
+          <th>Últ. Entrada</th>
+          <th>Obs</th>
         </tr>
       </thead>
       <tbody>
@@ -53,17 +63,22 @@
     </table>
   </div>
 
-  <!-- PRODUTOS ACABADOS -->
+  <!-- Produtos Acabados -->
   <div class="tab-pane fade" id="pa" role="tabpanel">
-    <a href="{{ url_for('views.novo_produto_acabado') }}"
-       class="btn btn-sm btn-success mb-2">
+    <a href="{{ url_for('views.novo_produto_acabado') }}" class="btn btn-sm btn-success mb-2">
       + Produto Acabado
     </a>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Código</th><th>Tipo</th><th>Lâmina</th><th>Cabo</th>
-          <th>Disp.</th><th>Reser.</th><th>Vend. Mês</th><th>Obs</th>
+          <th>Código</th>
+          <th>Tipo</th>
+          <th>Lâmina</th>
+          <th>Cabo</th>
+          <th>Disponível</th>
+          <th>Reservada</th>
+          <th>Vendida Mês</th>
+          <th>Obs</th>
         </tr>
       </thead>
       <tbody>
@@ -83,79 +98,148 @@
     </table>
   </div>
 
-  <!-- PEDIDOS / VENDAS -->
+  <!-- Pedidos / Vendas -->
   <div class="tab-pane fade" id="pv" role="tabpanel">
-    <a href="{{ url_for('views.novo_pedido_venda') }}"
-       class="btn btn-sm btn-success mb-2">
+    <a href="{{ url_for('views.novo_pedido_venda') }}" class="btn btn-sm btn-success mb-2">
       + Pedido / Venda
     </a>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Nº Pedido</th><th>Cliente</th><th>Produtos</th><th>Pers.</th>
-          <th>Data Pedido</th><th>Status</th><th>Entrega Prev.</th>
-          <th>Valor</th><th>Obs</th>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Produto(s)</th>
+          <th>Personalização</th>
+          <th>Data</th>
+          <th>Status</th>
+          <th>Prev. Entrega</th>
+          <th>Valor</th>
+          <th>Obs</th>
         </tr>
       </thead>
       <tbody>
-        {% for v in pedidos %}
+        {% for ped in pedidos %}
         <tr>
-          <td>{{ v.numero_pedido }}</td>
-          <td>{{ v.nome_cliente }}</td>
-          <td>{{ v.produtos_solicitados }}</td>
-          <td>{{ 'Sim' if v.personalizacao else 'Não' }}</td>
-          <td>{{ v.data_pedido.strftime('%d/%m/%Y') }}</td>
-          <td>{{ v.status }}</td>
-          <td>{{ v.data_prevista_entrega.strftime('%d/%m/%Y') if v.data_prevista_entrega else '-' }}</td>
-          <td>R$ {{ "%.2f"|format(v.valor_pedido) }}</td>
-          <td>{{ v.observacoes or '-' }}</td>
+          <td>{{ ped.numero_pedido }}</td>
+          <td>{{ ped.nome_cliente }}</td>
+          <td>{{ ped.produtos_solicitados }}</td>
+          <td>{{ 'Sim' if ped.personalizacao else 'Não' }}</td>
+          <td>{{ ped.data_pedido.strftime('%d/%m/%Y') }}</td>
+          <td>{{ ped.status }}</td>
+          <td>{{ ped.data_prevista_entrega.strftime('%d/%m/%Y') if ped.data_prevista_entrega else '-' }}</td>
+          <td>{{ ped.valor_pedido }}</td>
+          <td>{{ ped.observacoes or '-' }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <!-- ORDEM DE SERVIÇO -->
+  <!-- Ordem de Serviço -->
   <div class="tab-pane fade" id="os" role="tabpanel">
-    <a href="{{ url_for('views.nova_ordem_servico') }}"
-       class="btn btn-sm btn-success mb-2">
+    <a href="{{ url_for('views.nova_ordem_servico') }}" class="btn btn-sm btn-success mb-2">
       + Ordem de Serviço
     </a>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Nº OS</th><th>Produto</th><th>Qtd</th><th>Mat. Necessários</th>
-          <th>Início</th><th>Prev. Conclusão</th><th>Resp.</th><th>Status</th>
+          <th>OS</th>
+          <th>Produto</th>
+          <th>Qtd</th>
+          <th>Mat. Necessários</th>
+          <th>Início</th>
+          <th>Prev. Conclusão</th>
+          <th>Resp.</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
-        {% for o in ordens %}
+        {% for os in ordens %}
         <tr>
-          <td>{{ o.numero_os }}</td>
-          <td>{{ o.produto.codigo_faca }}</td>
-          <td>{{ o.quantidade }}</td>
-          <td>{{ o.materiais_necessarios }}</td>
-          <td>{{ o.data_inicio_producao.strftime('%d/%m/%Y') }}</td>
-          <td>{{ o.data_prevista_conclusao.strftime('%d/%m/%Y') if o.data_prevista_conclusao else '-' }}</td>
-          <td>{{ o.responsavel }}</td>
-          <td>{{ o.status }}</td>
+          <td>{{ os.numero_os }}</td>
+          <td>{{ os.produto.codigo_faca }}</td>
+          <td>{{ os.quantidade }}</td>
+          <td>{{ os.materiais_necessarios }}</td>
+          <td>{{ os.data_inicio_producao.strftime('%d/%m/%Y') }}</td>
+          <td>{{ os.data_prevista_conclusao.strftime('%d/%m/%Y') if os.data_prevista_conclusao else '-' }}</td>
+          <td>{{ os.responsavel }}</td>
+          <td>{{ os.status }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <!-- ALERTAS & INDICADORES -->
+  <!-- Reposição de Matéria-Prima -->
+  <div class="tab-pane fade" id="reposicao" role="tabpanel">
+    <a href="{{ url_for('views.nova_reposicao_materia_prima') }}"
+       class="btn btn-sm btn-success mb-2">
+      + Requisição de Reposição
+    </a>
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Matéria-Prima</th>
+          <th>Qtd. Reposição</th>
+          <th>Solicitação</th>
+          <th>Previsão</th>
+          <th>Fornecedor</th>
+          <th>Status</th>
+          <th>Obs</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reposicoes %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.materia.codigo_item }}</td>
+          <td>{{ r.quantidade_reposicao }}</td>
+          <td>{{ r.data_solicitacao.strftime('%d/%m/%Y') }}</td>
+          <td>{{ r.data_previsao_reposicao.strftime('%d/%m/%Y') if r.data_previsao_reposicao else '-' }}</td>
+          <td>{{ r.fornecedor or '-' }}</td>
+          <td>{{ r.status }}</td>
+          <td>{{ r.observacoes or '-' }}</td>
+          <td>
+            <a href="{{ url_for('views.edit_reposicao_materia_prima', rp_id=r.id) }}"
+               class="btn btn-sm btn-secondary">
+              Editar
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Alertas & Indicadores -->
   <div class="tab-pane fade" id="alertas" role="tabpanel">
-    <h4>Alertas e Indicadores</h4>
-    <ul>
-      <li>Itens abaixo do mínimo: <strong>{{ itens_baixo_estoque|length }}</strong></li>
-      <li>Pedidos vencidos: <strong>{{ pedidos_vencidos|length }}</strong></li>
-      <li>Produções em atraso: <strong>{{ producoes_atrasadas|length }}</strong></li>
-      <li>Total de pedidos em andamento: <strong>{{ total_pedidos_andamento }}</strong></li>
-      <li>Vendas do mês (R$): <strong>{{ "%.2f"|format(vendas_mes) }}</strong></li>
+    <h4>Alertas & Indicadores</h4>
+    <ul class="list-group">
+      <li class="list-group-item">
+        Itens abaixo do mínimo:
+        <strong>{{ itens_baixo_estoque|length }}</strong>
+      </li>
+      <li class="list-group-item">
+        Pedidos vencidos:
+        <strong>{{ pedidos_vencidos|length }}</strong>
+      </li>
+      <li class="list-group-item">
+        Produções em atraso:
+        <strong>{{ producoes_atrasadas|length }}</strong>
+      </li>
+      <li class="list-group-item">
+        Pedidos em andamento:
+        <strong>{{ total_pedidos_andamento }}</strong>
+      </li>
+      <li class="list-group-item">
+        Vendas do mês:
+        <strong>R$ {{ vendas_mes|round(2) }}</strong>
+      </li>
     </ul>
   </div>
+
 </div>
 
 <script>

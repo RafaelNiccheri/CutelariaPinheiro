@@ -5,6 +5,9 @@ from flask_login import UserMixin
 from sqlalchemy.sql import func
 from . import db
 
+# --------------------------------
+# Nota/Usuário (banco default)
+# --------------------------------
 class Note(db.Model):
     __tablename__ = 'note'
     id      = db.Column(db.Integer, primary_key=True)
@@ -76,3 +79,17 @@ class OrdemServico(db.Model):
     data_prevista_conclusao  = db.Column(db.Date, nullable=True)
     responsavel              = db.Column(db.String(100), nullable=False)
     status                   = db.Column(db.String(50), nullable=False)
+
+# nova tabela: Reposição de Matéria-Prima
+class ReposicaoMateriaPrima(db.Model):
+    __bind_key__ = 'management'
+    __tablename__ = 'reposicao_materia_prima'
+    id                       = db.Column(db.Integer, primary_key=True)
+    materia_id               = db.Column(db.Integer, db.ForeignKey('materia_prima.id'), nullable=False)
+    materia                  = db.relationship('MateriaPrima', backref=db.backref('reposicoes', lazy=True))
+    quantidade_reposicao     = db.Column(db.Float, nullable=False)
+    data_solicitacao         = db.Column(db.Date, default=date.today)
+    data_previsao_reposicao  = db.Column(db.Date, nullable=True)
+    fornecedor               = db.Column(db.String(150), nullable=True)
+    status                   = db.Column(db.String(50), default='solicitado')
+    observacoes              = db.Column(db.Text, nullable=True)
