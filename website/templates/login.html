@@ -1,5 +1,7 @@
-{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content
-%}
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
 <form method="POST">
   <h3 align="center">Login</h3>
   <div class="form-group">
@@ -24,5 +26,12 @@
   </div>
   <br />
   <button type="submit" class="btn btn-primary">Login</button>
+
+  <!-- ── Google Sign-In Button ─────────────────────────── -->
+  <hr>
+  <a href="{{ url_for('auth.login_google') }}"
+     class="btn btn-danger btn-block">
+    <i class="fa fa-google"></i> Sign in with Google
+  </a>
 </form>
 {% endblock %}
