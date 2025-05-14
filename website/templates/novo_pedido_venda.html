@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %} {% block title %}Novo Pedido/Venda{% endblock %}
 {% block content %}
 <h3>Novo Pedido/Venda</h3>
@@ -45,5 +46,90 @@
     <textarea name="observacoes" class="form-control"></textarea>
   </div>
   <button class="btn btn-primary">Salvar</button>
+=======
+{% extends "base.html" %}
+{% block title %}Novo Pedido / Venda{% endblock %}
+
+{% block content %}
+<h2>Novo Pedido / Venda</h2>
+<form method="POST">
+  <div class="form-row">
+    <div class="form-group col-md-4">
+      <label for="numero_pedido">Nº do Pedido</label>
+      <input type="text" class="form-control" id="numero_pedido"
+             name="numero_pedido" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label for="nome_cliente">Cliente</label>
+      <input type="text" class="form-control" id="nome_cliente"
+             name="nome_cliente" required>
+    </div>
+    <div class="form-group col-md-4">
+      <label for="produto_id">Produto</label>
+      <select class="form-control" id="produto_id" name="produto_id" required>
+        <option value="" disabled selected>— selecione —</option>
+        {% for p in produtos %}
+        <option value="{{ p.id }}">
+          {{ p.codigo_faca }} — {{ p.tipo }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group col-md-2">
+      <label for="quantidade">Qtd.</label>
+      <input type="number" class="form-control" id="quantidade"
+             name="quantidade" value="1" min="1" required>
+    </div>
+    <div class="form-group col-md-3">
+      <label for="data_pedido">Data do Pedido</label>
+      <input type="date" class="form-control" id="data_pedido"
+             name="data_pedido" value="{{ date.today().isoformat() }}" required>
+    </div>
+    <div class="form-group col-md-3">
+      <label for="data_prevista_entrega">Prev. Entrega</label>
+      <input type="date" class="form-control" id="data_prevista_entrega"
+             name="data_prevista_entrega" value="{{ date.today().isoformat() }}" required>
+    </div>
+    <div class="form-group col-md-2">
+      <label for="valor_pedido">Valor (R$)</label>
+      <input type="number" step="0.01" class="form-control"
+             id="valor_pedido" name="valor_pedido" required>
+    </div>
+    <div class="form-group col-md-1 align-self-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="personalizacao"
+               name="personalizacao">
+        <label class="form-check-label" for="personalizacao">
+          Pers.
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="detalhes_personalizacao">Detalhes (se houver)</label>
+    <textarea class="form-control" id="detalhes_personalizacao"
+              name="detalhes_personalizacao" rows="2"></textarea>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="status">Status</label>
+      <input type="text" class="form-control" id="status"
+             name="status" placeholder="recebido" required>
+    </div>
+    <div class="form-group col-md-6">
+      <label for="observacoes">Observações</label>
+      <input type="text" class="form-control" id="observacoes"
+             name="observacoes">
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Salvar</button>
+  <a href="{{ url_for('views.gestao') }}" class="btn btn-link">Cancelar</a>
+>>>>>>> e304e52 (commit ajuste flask)
 </form>
 {% endblock %}

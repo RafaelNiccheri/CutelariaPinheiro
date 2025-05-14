@@ -109,12 +109,20 @@
           <th>Pedido</th>
           <th>Cliente</th>
           <th>Produto(s)</th>
+<<<<<<< HEAD
+=======
+          <th>Qtd.</th>
+>>>>>>> e304e52 (commit ajuste flask)
           <th>Personalização</th>
           <th>Data</th>
           <th>Status</th>
           <th>Prev. Entrega</th>
           <th>Valor</th>
           <th>Obs</th>
+<<<<<<< HEAD
+=======
+          <th>Ações</th>
+>>>>>>> e304e52 (commit ajuste flask)
         </tr>
       </thead>
       <tbody>
@@ -123,12 +131,22 @@
           <td>{{ ped.numero_pedido }}</td>
           <td>{{ ped.nome_cliente }}</td>
           <td>{{ ped.produtos_solicitados }}</td>
+<<<<<<< HEAD
+=======
+          <td>{{ ped.produtos_solicitados.split('×')[-1] | trim }}</td>
+>>>>>>> e304e52 (commit ajuste flask)
           <td>{{ 'Sim' if ped.personalizacao else 'Não' }}</td>
           <td>{{ ped.data_pedido.strftime('%d/%m/%Y') }}</td>
           <td>{{ ped.status }}</td>
           <td>{{ ped.data_prevista_entrega.strftime('%d/%m/%Y') if ped.data_prevista_entrega else '-' }}</td>
           <td>{{ ped.valor_pedido }}</td>
           <td>{{ ped.observacoes or '-' }}</td>
+<<<<<<< HEAD
+=======
+          <td>
+            <a href="{{ url_for('views.edit_pedido_venda', ped_id=ped.id) }}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+>>>>>>> e304e52 (commit ajuste flask)
         </tr>
         {% endfor %}
       </tbody>
@@ -172,8 +190,12 @@
 
   <!-- Reposição de Matéria-Prima -->
   <div class="tab-pane fade" id="reposicao" role="tabpanel">
+<<<<<<< HEAD
     <a href="{{ url_for('views.nova_reposicao_materia_prima') }}"
        class="btn btn-sm btn-success mb-2">
+=======
+    <a href="{{ url_for('views.nova_reposicao_materia_prima') }}" class="btn btn-sm btn-success mb-2">
+>>>>>>> e304e52 (commit ajuste flask)
       + Requisição de Reposição
     </a>
     <table class="table table-striped table-sm">
@@ -202,10 +224,14 @@
           <td>{{ r.status }}</td>
           <td>{{ r.observacoes or '-' }}</td>
           <td>
+<<<<<<< HEAD
             <a href="{{ url_for('views.edit_reposicao_materia_prima', rp_id=r.id) }}"
                class="btn btn-sm btn-secondary">
               Editar
             </a>
+=======
+            <a href="{{ url_for('views.edit_reposicao_materia_prima', rp_id=r.id) }}" class="btn btn-sm btn-secondary">Editar</a>
+>>>>>>> e304e52 (commit ajuste flask)
           </td>
         </tr>
         {% endfor %}
@@ -218,6 +244,7 @@
     <h4>Alertas & Indicadores</h4>
     <ul class="list-group">
       <li class="list-group-item">
+<<<<<<< HEAD
         Itens abaixo do mínimo:
         <strong>{{ itens_baixo_estoque|length }}</strong>
       </li>
@@ -236,6 +263,21 @@
       <li class="list-group-item">
         Vendas do mês:
         <strong>R$ {{ vendas_mes|round(2) }}</strong>
+=======
+        Itens abaixo do mínimo: <strong>{{ itens_baixo_estoque|length }}</strong>
+      </li>
+      <li class="list-group-item">
+        Pedidos vencidos: <strong>{{ pedidos_vencidos|length }}</strong>
+      </li>
+      <li class="list-group-item">
+        Produções em atraso: <strong>{{ producoes_atrasadas|length }}</strong>
+      </li>
+      <li class="list-group-item">
+        Pedidos em andamento: <strong>{{ total_pedidos_andamento }}</strong>
+      </li>
+      <li class="list-group-item">
+        Vendas do mês: <strong>R$ {{ vendas_mes|round(2) }}</strong>
+>>>>>>> e304e52 (commit ajuste flask)
       </li>
     </ul>
   </div>
