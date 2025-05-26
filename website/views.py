@@ -4,50 +4,19 @@ import re
 import json
 from datetime import date, datetime
 from flask import (Blueprint, render_template, request,redirect, url_for, flash, jsonify)
-from flask_login import login_required, current_user
 from sqlalchemy import func
 from . import db
-from .models import (Note,MateriaPrima,ProdutoAcabado,PedidoVenda,OrdemServico,ReposicaoMateriaPrima, ProductImage, Inventario, VendaNormal)
+from .models import (MateriaPrima,ProdutoAcabado,PedidoVenda,OrdemServico,ReposicaoMateriaPrima, ProductImage, Inventario, VendaNormal)
 from werkzeug.utils import secure_filename
-from . import allowed_file
 from flask import current_app
 import os
 from datetime import datetime
 
 views = Blueprint('views', __name__)
 
-
-# ── Home / Notes ────────────────────────────────────────────────
-@views.route('/', methods=['GET', 'POST'])
-@login_required
-def home():
-    if request.method == 'POST':
-        note_text = request.form.get('note')
-        if not note_text or len(note_text) < 1:
-            flash('Nota muito curta!', 'error')
-        else:
-            new_note = Note(data=note_text, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Nota adicionada!', 'success')
-
-    notes = Note.query.filter_by(user_id=current_user.id).all()
-    return render_template('home.html', user=current_user, notes=notes)
-
-
-@views.route('/delete-note', methods=['POST'])
-def delete_note():
-    data = json.loads(request.data)
-    note = Note.query.get(data.get('noteId'))
-    if note and note.user_id == current_user.id:
-        db.session.delete(note)
-        db.session.commit()
-    return jsonify({}), 200
-
-
 # ── Dashboard de Gestão ───────────────────────────────────────────
+@views.route('/')
 @views.route('/gestao')
-@login_required
 def gestao():
     # — filtro opcional de cliente para Pedidos/Vendas —
     search_cliente = request.args.get('cliente', '').strip()
@@ -120,7 +89,7 @@ def gestao():
 
     return render_template(
         'gestao.html',
-        user=current_user,
+
         materias=materias,
         produtos=produtos,
         pedidos=pedidos,
@@ -141,7 +110,6 @@ def gestao():
 
 # ── Formulários “+ Novo” ───────────────────────────────────────────
 @views.route('/gestao/mp/novo', methods=['GET', 'POST'])
-@login_required
 def nova_materia_prima():
     if request.method == 'POST':
         m = MateriaPrima(
@@ -158,11 +126,10 @@ def nova_materia_prima():
         db.session.commit()
         flash('Matéria-prima cadastrada!', 'success')
         return redirect(url_for('views.gestao'))
-    return render_template('nova_materia_prima.html', user=current_user)
+    return render_template('nova_materia_prima.html')
 
 
 @views.route('/gestao/pa/novo', methods=['GET', 'POST'])
-@login_required
 def novo_produto_acabado():
     if request.method == 'POST':
         p = ProdutoAcabado(
@@ -179,12 +146,11 @@ def novo_produto_acabado():
         db.session.commit()
         flash('Produto acabado cadastrado!', 'success')
         return redirect(url_for('views.gestao'))
-    return render_template('novo_produto_acabado.html', user=current_user)
+    return render_template('novo_produto_acabado.html')
 
 
 # ── Novo Pedido/Venda ────────────────────────────────────────────
 @views.route('/gestao/pv/novo', methods=['GET','POST'])
-@login_required
 def novo_pedido_venda():
     produtos = ProdutoAcabado.query.all()
     if request.method == 'POST':
@@ -220,14 +186,13 @@ def novo_pedido_venda():
 
     return render_template(
         'novo_pedido_venda.html',
-        user=current_user,
+
         produtos=produtos,
         date=date
     )
 
 # ── Nova Ordem de Serviço ─────────────────────────────────────────
 @views.route('/gestao/os/novo', methods=['GET','POST'])
-@login_required
 def nova_ordem_servico():
     produtos = ProdutoAcabado.query.all()
 
@@ -267,7 +232,7 @@ def nova_ordem_servico():
 
     return render_template(
         'nova_ordem_servico.html',
-        user=current_user,
+
         produtos=produtos,
         date=date
     )
@@ -275,7 +240,6 @@ def nova_ordem_servico():
 
 
 @views.route('/gestao/reposicao/novo', methods=['GET', 'POST'])
-@login_required
 def nova_reposicao_materia_prima():
     if request.method == 'POST':
         status = request.form['status']
@@ -306,11 +270,10 @@ def nova_reposicao_materia_prima():
         return redirect(url_for('views.gestao'))
 
     materias = MateriaPrima.query.all()
-    return render_template('nova_reposicao.html',user=current_user,materias=materias,date=date)
+    return render_template('nova_reposicao.html',materias=materias,date=date)
 
 
 @views.route('/gestao/reposicao/edit/<int:rp_id>', methods=['GET', 'POST'])
-@login_required
 def edit_reposicao_materia_prima(rp_id):
     rp = ReposicaoMateriaPrima.query.get_or_404(rp_id)
     old_status = rp.status
@@ -331,11 +294,10 @@ def edit_reposicao_materia_prima(rp_id):
         flash(f'Status da reposição #{rp.id} atualizado para "{rp.status}" e estoque ajustado.', 'success')
         return redirect(url_for('views.gestao'))
 
-    return render_template('edit_reposicao.html', user=current_user, reposicao=rp)
+    return render_template('edit_reposicao.html',  reposicao=rp)
 
 
 @views.route('/gestao/pv/edit/<int:ped_id>', methods=['GET', 'POST'])
-@login_required
 def edit_pedido_venda(ped_id):
     ped = PedidoVenda.query.get_or_404(ped_id)
     if request.method == 'POST':
@@ -346,14 +308,20 @@ def edit_pedido_venda(ped_id):
 
     return render_template(
         'edit_pedido_venda.html',
-        user=current_user,
+
         pedido=ped
     )
 
+# only needed for image uploads
+ALLOWED_EXTENSIONS = {'png','jpg','jpeg','gif'}
+def allowed_file(filename):
+    return (
+        '.' in filename and
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    )
 
 # Listar + upload + delete + set primary
 @views.route('/gestao/pa/<int:prod_id>/images', methods=['GET', 'POST'])
-@login_required
 def manage_product_images(prod_id):
     prod = ProdutoAcabado.query.get_or_404(prod_id)
 
@@ -374,7 +342,7 @@ def manage_product_images(prod_id):
     images = prod.images
     return render_template(
         'manage_images.html',
-        user=current_user,
+
         produto=prod,
         images=images
     )
@@ -382,7 +350,6 @@ def manage_product_images(prod_id):
 
 
 @views.route('/gestao/pa/<int:prod_id>/images/delete/<int:img_id>', methods=['POST'])
-@login_required
 def delete_product_image(prod_id, img_id):
     img = ProductImage.query.get_or_404(img_id)
     # remove arquivo
@@ -395,7 +362,6 @@ def delete_product_image(prod_id, img_id):
 
 
 @views.route('/gestao/pa/<int:prod_id>/images/set_primary/<int:img_id>', methods=['POST'])
-@login_required
 def set_primary_image(prod_id, img_id):
     prod = ProdutoAcabado.query.get_or_404(prod_id)
     # limpa primárias
@@ -409,7 +375,6 @@ def set_primary_image(prod_id, img_id):
 
 
 @views.route('/gestao/os/edit/<int:os_id>', methods=['GET','POST'])
-@login_required
 def edit_ordem_servico(os_id):
     os_         = OrdemServico.query.get_or_404(os_id)
     prev_status = os_.status
@@ -444,11 +409,10 @@ def edit_ordem_servico(os_id):
         return redirect(url_for('views.gestao'))
 
     return render_template('edit_ordem_servico.html',
-                           user=current_user,
+
                            os=os_)
 
 @views.route('/gestao/venda_normal/novo', methods=['GET','POST'])
-@login_required
 def nova_venda_normal():
     produtos = ProdutoAcabado.query.all()
 
@@ -489,5 +453,30 @@ def nova_venda_normal():
         'novo_venda_normal.html',
         produtos=produtos,
         date=date,
-        user=current_user
+    )
+
+
+@views.route('/gestao/mp/edit/<int:mp_id>', methods=['GET', 'POST'])
+def edit_materia_prima(mp_id):
+    materia = MateriaPrima.query.get_or_404(mp_id)
+
+    if request.method == 'POST':
+        # Atualiza o fornecedor (e qualquer outro campo que queira permitir editar)
+        materia.fornecedor          = request.form['fornecedor']
+        materia.tipo_material       = request.form['tipo_material']
+        materia.unidade             = request.form['unidade']
+        materia.quantidade_estoque  = float(request.form['quantidade_estoque'])
+        materia.ponto_reposicao     = float(request.form['ponto_reposicao'])
+        materia.data_ultima_entrada = request.form['data_ultima_entrada']
+        materia.observacoes         = request.form.get('observacoes')
+
+        db.session.commit()
+        flash('Matéria-prima atualizada com sucesso!', 'success')
+        # volta para a aba de Matéria-Prima
+        return redirect(url_for('views.gestao', active_tab='mp'))
+
+    # GET: renderiza formulário já preenchido
+    return render_template(
+        'edit_materia_prima.html',
+        materia=materia
     )

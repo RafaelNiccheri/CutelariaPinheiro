@@ -18,7 +18,7 @@
 
   <!-- Dark navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{{ url_for('views.home') }}">Cutelaria</a>
+    <a class="navbar-brand" href="{{ url_for('views.gestao') }}">Cutelaria</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -34,25 +34,11 @@
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('views.home') }}">Home</a>
+          <a class="nav-link" href="{{ url_for('views.gestao') }}">Home</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('views.gestao') }}">Gestão</a>
         </li>
-      </ul>
-      <ul class="navbar-nav ml-auto">
-        {% if current_user.is_authenticated %}
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('auth.logout') }}">Sair</a>
-        </li>
-        {% else %}
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('auth.sign_up') }}">Sign Up</a>
-        </li>
-        {% endif %}
       </ul>
     </div>
   </nav>
@@ -74,18 +60,5 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  {% block javascript %}
-  <!-- restore the deleteNote function for your Notes page -->
-  <script type="text/javascript">
-    function deleteNote(noteId) {
-      fetch("/delete-note", {
-        method: "POST",
-        body: JSON.stringify({ noteId: noteId }),
-      }).then(() => {
-        window.location.href = "/";
-      });
-    }
-  </script>
-  {% endblock %}
 </body>
 </html>

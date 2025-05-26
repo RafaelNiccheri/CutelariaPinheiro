@@ -65,6 +65,12 @@
           <td>{{ m.fornecedor or '-' }}</td>
           <td>{{ m.data_ultima_entrada.strftime('%d/%m/%Y') }}</td>
           <td>{{ m.observacoes or '-' }}</td>
+          <td>
+  <a href="{{ url_for('views.edit_materia_prima', mp_id=m.id) }}"
+     class="btn btn-sm btn-outline-secondary">
+    Editar
+  </a>
+</td>
         </tr>
         {% endfor %}
       </tbody>

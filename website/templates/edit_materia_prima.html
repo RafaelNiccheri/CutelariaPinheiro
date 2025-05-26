@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Editar Matéria-Prima{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Editar Matéria-Prima: {{ materia.codigo_item }}</h2>
+  <form method="POST">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label for="fornecedor" class="form-label">Fornecedor</label>
+        <input type="text"
+               id="fornecedor"
+               name="fornecedor"
+               class="form-control"
+               value="{{ materia.fornecedor }}"
+               required>
+      </div>
+      <div class="col-md-4">
+        <label for="tipo_material" class="form-label">Tipo de Material</label>
+        <input type="text"
+               id="tipo_material"
+               name="tipo_material"
+               class="form-control"
+               value="{{ materia.tipo_material }}"
+               required>
+      </div>
+      <div class="col-md-2">
+        <label for="unidade" class="form-label">Unidade</label>
+        <input type="text"
+               id="unidade"
+               name="unidade"
+               class="form-control"
+               value="{{ materia.unidade }}"
+               required>
+      </div>
+      <div class="col-md-2">
+        <label for="quantidade_estoque" class="form-label">Qtd. Estoque</label>
+        <input type="number"
+               step="0.01"
+               id="quantidade_estoque"
+               name="quantidade_estoque"
+               class="form-control"
+               value="{{ materia.quantidade_estoque }}"
+               required>
+      </div>
+      <div class="col-md-2">
+        <label for="ponto_reposicao" class="form-label">Ponto Reposição</label>
+        <input type="number"
+               step="0.01"
+               id="ponto_reposicao"
+               name="ponto_reposicao"
+               class="form-control"
+               value="{{ materia.ponto_reposicao }}"
+               required>
+      </div>
+      <div class="col-md-3">
+        <label for="data_ultima_entrada" class="form-label">Última Entrada</label>
+        <input type="date"
+               id="data_ultima_entrada"
+               name="data_ultima_entrada"
+               class="form-control"
+               value="{{ materia.data_ultima_entrada.isoformat() }}"
+               required>
+      </div>
+      <div class="col-md-12">
+        <label for="observacoes" class="form-label">Observações</label>
+        <textarea id="observacoes"
+                  name="observacoes"
+                  class="form-control"
+                  rows="2">{{ materia.observacoes }}</textarea>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button type="submit" class="btn btn-primary">Salvar</button>
+      <a href="{{ url_for('views.gestao', active_tab='mp') }}"
+         class="btn btn-secondary ms-2">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
