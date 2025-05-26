@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Nova Venda – Cutelaria{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Registrar Venda Normal</h2>
+  <form method="POST" action="{{ url_for('views.nova_venda_normal') }}">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="produto_id" class="form-label">Produto</label>
+        <select id="produto_id" name="produto_id" class="form-select" required>
+          <option value="" disabled selected>Selecione...</option>
+          {% for p in produtos %}
+          <option value="{{ p.id }}">{{ p.codigo_faca }} – {{ p.tipo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="quantidade" class="form-label">Quantidade</label>
+        <input type="number" id="quantidade" name="quantidade"
+               min="1" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label for="valor_venda" class="form-label">Valor (R$)</label>
+        <input type="number" id="valor_venda" name="valor_venda"
+               step="0.01" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="cliente" class="form-label">Cliente</label>
+      <input type="text" id="cliente" name="cliente"
+             class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="data_venda" class="form-label">Data da Venda</label>
+      <input type="date" id="data_venda" name="data_venda"
+             class="form-control"
+             value="{{ date.today().isoformat() }}" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="{{ url_for('views.gestao') }}" class="btn btn-secondary ms-2">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,103 +1,125 @@
+# website/auth.py
+
 import os
-import secrets
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from .models import User
+from flask import (
+    Blueprint, render_template, request,
+    flash, redirect, url_for, current_app
+)
 from werkzeug.security import generate_password_hash, check_password_hash
-from . import db, oauth
 from flask_login import login_user, login_required, logout_user, current_user
+from authlib.integrations.flask_client import OAuthError
+
+from . import db, oauth
+from .models import User
 
 auth = Blueprint('auth', __name__)
+
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email    = request.form.get('email')
         password = request.form.get('password')
+        user     = User.query.filter_by(email=email).first()
 
-        user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
-            flash('Logged in successfully!', category='success')
             login_user(user, remember=True)
+            # Create all tables in both the default and the per-user "management" bind
+            with current_app.app_context():
+                db.create_all()
+            flash('Logged in successfully!', 'success')
             return redirect(url_for('views.home'))
-        if user:
-            flash('Incorrect password, try again.', category='error')
-        else:
-            flash('Email does not exist.', category='error')
 
-    return render_template("login.html", user=current_user)
+        flash('Invalid email or password.', 'error')
+
+    return render_template('login.html', user=current_user)
+
 
 @auth.route('/login/google')
 def login_google():
-    if current_user.is_authenticated:
-        return redirect(url_for('views.home'))
-    redirect_uri = url_for('auth.auth_google_callback', _external=True)
+    redirect_uri = url_for('auth.authorize_google', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
-@auth.route('/authorize/google')
-def auth_google_callback():
-    # Exchange code for tokens
-    token = oauth.google.authorize_access_token()
 
-    # Parse & verify the ID token (with nonce)
-    nonce     = token.get('nonce')
-    user_info = oauth.google.parse_id_token(token, nonce)
+@auth.route('/login/google/authorize')
+def authorize_google():
+    try:
+        token = oauth.google.authorize_access_token()
+    except OAuthError:
+        flash('Google login failed.', 'error')
+        return redirect(url_for('auth.login'))
 
-    # Lookup or create our local user
-    email = user_info['email']
-    user  = User.query.filter_by(email=email).first()
+    userinfo = token.get('userinfo')
+    if not userinfo:
+        flash('Could not fetch user info from Google.', 'error')
+        return redirect(url_for('auth.login'))
+
+    email = userinfo.get('email')
+    if not email:
+        flash('No email returned by Google.', 'error')
+        return redirect(url_for('auth.login'))
+
+    user = User.query.filter_by(email=email).first()
     if not user:
-        # Generate a URL-safe random string, then hash it
-        random_password = secrets.token_urlsafe(16)
-        random_pw       = generate_password_hash(random_password)
-
+        # Generate a random hex string for the password
+        random_pw = os.urandom(16).hex()
         user = User(
             email=email,
-            first_name=user_info.get('name', '').split(' ')[0],
-            password=random_pw
+            first_name=userinfo.get('given_name', email.split('@')[0]),
+            password=generate_password_hash(random_pw, method='pbkdf2:sha256')
         )
         db.session.add(user)
         db.session.commit()
 
-    # Log them in
     login_user(user, remember=True)
-    flash('Logged in with Google!', category='success')
+    # Initialize this user's management DB
+    with current_app.app_context():
+        db.create_all()
+
+    flash('Logged in with Google!', 'success')
     return redirect(url_for('views.home'))
 
-@auth.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('auth.login'))
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
     if request.method == 'POST':
         email      = request.form.get('email')
         first_name = request.form.get('firstName')
-        password1  = request.form.get('password1')
-        password2  = request.form.get('password2')
+        pw1        = request.form.get('password1')
+        pw2        = request.form.get('password2')
 
-        user = User.query.filter_by(email=email).first()
-        if user:
-            flash('Email already exists.', category='error')
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.', 'error')
         elif len(email) < 4:
-            flash('Email must be greater than 3 characters.', category='error')
+            flash('Email must be at least 4 characters.', 'error')
         elif len(first_name) < 2:
-            flash('First name must be greater than 1 character.', category='error')
-        elif password1 != password2:
-            flash("Passwords don't match.", category='error')
-        elif len(password1) < 7:
-            flash('Password must be at least 7 characters.', category='error')
+            flash('First name must be at least 2 characters.', 'error')
+        elif pw1 != pw2:
+            flash("Passwords don't match.", 'error')
+        elif len(pw1) < 7:
+            flash('Password must be at least 7 characters.', 'error')
         else:
             new_user = User(
                 email=email,
                 first_name=first_name,
-                password=generate_password_hash(password1, method='pbkdf2:sha256')
+                password=generate_password_hash(pw1, method='pbkdf2:sha256')
             )
             db.session.add(new_user)
             db.session.commit()
+
             login_user(new_user, remember=True)
-            flash('Account created!', category='success')
+            # Initialize this user's management DB
+            with current_app.app_context():
+                db.create_all()
+
+            flash('Account created!', 'success')
             return redirect(url_for('views.home'))
 
-    return render_template("sign_up.html", user=current_user)
+    return render_template('sign_up.html', user=current_user)
+
+
+@auth.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('auth.login'))

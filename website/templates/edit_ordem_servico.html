@@ -1,0 +1,23 @@
+<!-- website/templates/edit_ordem_servico.html -->
+{% extends "base.html" %}
+
+{% block title %}Editar OS #{{ os.numero_os }}{% endblock %}
+
+{% block content %}
+<h2>Editar OS #{{ os.numero_os }}</h2>
+<form method="POST">
+  <div class="form-group mb-3">
+    <label for="status">Status da Produção</label>
+    <select id="status" name="status" class="form-control" required>
+      {% for s in ['recebido', 'produção', 'pronto', 'concluída'] %}
+      <option value="{{ s }}" {% if os.status == s %}selected{% endif %}>
+        {{ s|capitalize }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Salvar</button>
+  <a href="{{ url_for('views.gestao') }}" class="btn btn-secondary ms-2">Cancelar</a>
+</form>
+{% endblock %}

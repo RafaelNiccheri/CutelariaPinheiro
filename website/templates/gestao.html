@@ -1,49 +1,57 @@
-<!-- website/templates/gestao.html -->
+{# website/templates/gestao.html #}
 {% extends "base.html" %}
 {% block title %}Gestão – Cutelaria{% endblock %}
 
 {% block content %}
 <h2>Painel de Gestão</h2>
 
-<ul class="nav nav-tabs" id="gestaoTabs" role="tablist">
+<ul class="nav nav-tabs mb-3" id="gestaoTabs" role="tablist">
   <li class="nav-item">
-    <a class="nav-link active" id="tab-mp" data-toggle="tab" href="#mp" role="tab">Matéria-Prima</a>
+    <a class="nav-link {% if active_tab=='mp' %}active{% endif %}"
+       data-toggle="tab" href="#mp" role="tab">Matéria-Prima</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="tab-pa" data-toggle="tab" href="#pa" role="tab">Produtos Acabados</a>
+    <a class="nav-link {% if active_tab=='pa' %}active{% endif %}"
+       data-toggle="tab" href="#pa" role="tab">Produtos Oferecidos</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="tab-pv" data-toggle="tab" href="#pv" role="tab">Pedidos / Vendas</a>
+    <a class="nav-link {% if active_tab=='pv' %}active{% endif %}"
+       data-toggle="tab" href="#pv" role="tab">Pedidos</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="tab-os" data-toggle="tab" href="#os" role="tab">Ordem de Serviço</a>
+    <a class="nav-link {% if active_tab=='os' %}active{% endif %}"
+       data-toggle="tab" href="#os" role="tab">Ordem de Serviço</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="tab-reposicao" data-toggle="tab" href="#reposicao" role="tab">Reposição</a>
+    <a class="nav-link {% if active_tab=='reposicao' %}active{% endif %}"
+       data-toggle="tab" href="#reposicao" role="tab">Reposição</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="tab-alertas" data-toggle="tab" href="#alertas" role="tab">Alertas & Indicadores</a>
+  <a class="nav-link {% if active_tab=='vnorm' %}active{% endif %}"
+     data-toggle="tab" href="#vnorm" role="tab">Vendas</a>
+</li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab=='inv' %}active{% endif %}"
+       data-toggle="tab" href="#inv" role="tab">Inventário</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab=='alertas' %}active{% endif %}"
+       data-toggle="tab" href="#alertas" role="tab">Alertas &amp; Indicadores</a>
   </li>
 </ul>
 
-<div class="tab-content mt-3">
+<div class="tab-content">
 
   <!-- Matéria-Prima -->
-  <div class="tab-pane fade show active" id="mp" role="tabpanel">
-    <a href="{{ url_for('views.nova_materia_prima') }}" class="btn btn-sm btn-success mb-2">
-      + Matéria-Prima
-    </a>
+  <div class="tab-pane fade {% if active_tab=='mp' %}show active{% endif %}"
+       id="mp" role="tabpanel">
+    <a href="{{ url_for('views.nova_materia_prima') }}"
+       class="btn btn-success btn-sm mb-2">+ Matéria-Prima</a>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Código</th>
-          <th>Tipo</th>
-          <th>Unidade</th>
-          <th>Qtd. Estoque</th>
-          <th>Ponto Rep.</th>
-          <th>Fornecedor</th>
-          <th>Últ. Entrada</th>
-          <th>Obs</th>
+          <th>Código</th><th>Tipo</th><th>Unidade</th><th>Qtd. Estoque</th>
+          <th>Ponto Rep.</th><th>Fornecedor</th><th>Últ. Entrada</th><th>Obs</th>
         </tr>
       </thead>
       <tbody>
@@ -63,22 +71,17 @@
     </table>
   </div>
 
-  <!-- Produtos Acabados -->
-  <div class="tab-pane fade" id="pa" role="tabpanel">
-    <a href="{{ url_for('views.novo_produto_acabado') }}" class="btn btn-sm btn-success mb-2">
-      + Produto Acabado
-    </a>
+  <!-- Produtos Oferecidos -->
+  <div class="tab-pane fade {% if active_tab=='pa' %}show active{% endif %}"
+       id="pa" role="tabpanel">
+    <a href="{{ url_for('views.novo_produto_acabado') }}"
+       class="btn btn-success btn-sm mb-2">+ Produto Oferecido</a>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Código</th>
-          <th>Tipo</th>
-          <th>Lâmina</th>
-          <th>Cabo</th>
-          <th>Disponível</th>
-          <th>Reservada</th>
-          <th>Vendida Mês</th>
-          <th>Obs</th>
+          <th>Código</th><th>Tipo</th><th>Lâmina</th><th>Cabo</th>
+          <th>Disponível</th><th>Reservada</th><th>Vendida Mês</th>
+          <th>Obs</th><th>Imagens</th>
         </tr>
       </thead>
       <tbody>
@@ -92,6 +95,10 @@
           <td>{{ p.quantidade_reservada }}</td>
           <td>{{ p.quantidade_vendida_mes }}</td>
           <td>{{ p.observacoes or '-' }}</td>
+          <td>
+            <a href="{{ url_for('views.manage_product_images', prod_id=p.id) }}"
+               class="btn btn-sm btn-outline-secondary">Imagens</a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -99,22 +106,25 @@
   </div>
 
   <!-- Pedidos / Vendas -->
-  <div class="tab-pane fade" id="pv" role="tabpanel">
-    <a href="{{ url_for('views.novo_pedido_venda') }}" class="btn btn-sm btn-success mb-2">
-      + Pedido / Venda
-    </a>
+  <div class="tab-pane fade {% if active_tab=='pv' %}show active{% endif %}"
+       id="pv" role="tabpanel">
+    <a href="{{ url_for('views.novo_pedido_venda') }}"
+       class="btn btn-success btn-sm mb-2">+ Pedido / Venda</a>
+    <form class="form-inline mb-2" method="GET"
+          action="{{ url_for('views.gestao') }}">
+      <input type="hidden" name="tab" value="pv">
+      <input class="form-control form-control-sm mr-2"
+             name="cliente"
+             placeholder="Buscar por cliente"
+             value="{{ search_cliente }}">
+      <button class="btn btn-secondary btn-sm">Buscar</button>
+    </form>
     <table class="table table-striped table-sm">
       <thead>
         <tr>
-          <th>Pedido</th>
-          <th>Cliente</th>
-          <th>Produto(s)</th>
-          <th>Personalização</th>
-          <th>Data</th>
-          <th>Status</th>
-          <th>Prev. Entrega</th>
-          <th>Valor</th>
-          <th>Obs</th>
+          <th>Nº Pedido</th><th>Cliente</th><th>Produtos</th>
+          <th>Data Pedido</th><th>Status</th><th>Entrega Prevista</th>
+          <th>Valor</th><th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -123,89 +133,16 @@
           <td>{{ ped.numero_pedido }}</td>
           <td>{{ ped.nome_cliente }}</td>
           <td>{{ ped.produtos_solicitados }}</td>
-          <td>{{ 'Sim' if ped.personalizacao else 'Não' }}</td>
           <td>{{ ped.data_pedido.strftime('%d/%m/%Y') }}</td>
           <td>{{ ped.status }}</td>
-          <td>{{ ped.data_prevista_entrega.strftime('%d/%m/%Y') if ped.data_prevista_entrega else '-' }}</td>
-          <td>{{ ped.valor_pedido }}</td>
-          <td>{{ ped.observacoes or '-' }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Ordem de Serviço -->
-  <div class="tab-pane fade" id="os" role="tabpanel">
-    <a href="{{ url_for('views.nova_ordem_servico') }}" class="btn btn-sm btn-success mb-2">
-      + Ordem de Serviço
-    </a>
-    <table class="table table-striped table-sm">
-      <thead>
-        <tr>
-          <th>OS</th>
-          <th>Produto</th>
-          <th>Qtd</th>
-          <th>Mat. Necessários</th>
-          <th>Início</th>
-          <th>Prev. Conclusão</th>
-          <th>Resp.</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for os in ordens %}
-        <tr>
-          <td>{{ os.numero_os }}</td>
-          <td>{{ os.produto.codigo_faca }}</td>
-          <td>{{ os.quantidade }}</td>
-          <td>{{ os.materiais_necessarios }}</td>
-          <td>{{ os.data_inicio_producao.strftime('%d/%m/%Y') }}</td>
-          <td>{{ os.data_prevista_conclusao.strftime('%d/%m/%Y') if os.data_prevista_conclusao else '-' }}</td>
-          <td>{{ os.responsavel }}</td>
-          <td>{{ os.status }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Reposição de Matéria-Prima -->
-  <div class="tab-pane fade" id="reposicao" role="tabpanel">
-    <a href="{{ url_for('views.nova_reposicao_materia_prima') }}"
-       class="btn btn-sm btn-success mb-2">
-      + Requisição de Reposição
-    </a>
-    <table class="table table-striped table-sm">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Matéria-Prima</th>
-          <th>Qtd. Reposição</th>
-          <th>Solicitação</th>
-          <th>Previsão</th>
-          <th>Fornecedor</th>
-          <th>Status</th>
-          <th>Obs</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in reposicoes %}
-        <tr>
-          <td>{{ r.id }}</td>
-          <td>{{ r.materia.codigo_item }}</td>
-          <td>{{ r.quantidade_reposicao }}</td>
-          <td>{{ r.data_solicitacao.strftime('%d/%m/%Y') }}</td>
-          <td>{{ r.data_previsao_reposicao.strftime('%d/%m/%Y') if r.data_previsao_reposicao else '-' }}</td>
-          <td>{{ r.fornecedor or '-' }}</td>
-          <td>{{ r.status }}</td>
-          <td>{{ r.observacoes or '-' }}</td>
           <td>
-            <a href="{{ url_for('views.edit_reposicao_materia_prima', rp_id=r.id) }}"
-               class="btn btn-sm btn-secondary">
-              Editar
-            </a>
+            {{ ped.data_prevista_entrega.strftime('%d/%m/%Y')
+               if ped.data_prevista_entrega else '-' }}
+          </td>
+          <td>{{ "%.2f"|format(ped.valor_pedido) }}</td>
+          <td>
+            <a href="{{ url_for('views.edit_pedido_venda', ped_id=ped.id) }}"
+               class="btn btn-sm btn-outline-primary">Editar</a>
           </td>
         </tr>
         {% endfor %}
@@ -213,39 +150,203 @@
     </table>
   </div>
 
+  <!-- Ordem de Serviço -->
+  <div class="tab-pane fade {% if active_tab=='os' %}show active{% endif %}"
+       id="os" role="tabpanel">
+    <a href="{{ url_for('views.nova_ordem_servico') }}"
+       class="btn btn-success btn-sm mb-2">+ Ordem de Serviço</a>
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>OS</th><th>Produto</th><th>Qtd</th>
+          <th>Mat. Necessários</th><th>Início</th>
+          <th>Prev. Conclusão</th><th>Resp.</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for os in ordens %}
+        <tr>
+          <td>{{ os.numero_os }}</td>
+          <td>{{ os.produto.codigo_faca }} – {{ os.produto.tipo }}</td>
+          <td>{{ os.quantidade }}</td>
+          <td>{{ os.materiais_necessarios }}</td>
+          <td>{{ os.data_inicio_producao.strftime('%d/%m/%Y') }}</td>
+          <td>
+            {{ os.data_prevista_conclusao.strftime('%d/%m/%Y')
+               if os.data_prevista_conclusao else '-' }}
+          </td>
+          <td>{{ os.responsavel }}</td>
+          <td>
+            <a href="{{ url_for('views.edit_ordem_servico', os_id=os.id) }}"
+               class="btn btn-sm btn-outline-primary">Editar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Reposição -->
+  <div class="tab-pane fade {% if active_tab=='reposicao' %}show active{% endif %}"
+       id="reposicao" role="tabpanel">
+    <a href="{{ url_for('views.nova_reposicao_materia_prima') }}"
+       class="btn btn-success btn-sm mb-2">+ Reposição</a>
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>Código</th><th>Qtde Reposição</th><th>Data Solic.</th>
+          <th>Previsão</th><th>Fornecedor</th><th>Status</th>
+          <th>Obs</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reposicoes %}
+        <tr>
+          <td>{{ r.materia.codigo_item }}</td>
+          <td>{{ r.quantidade_reposicao }}</td>
+          <td>{{ r.data_solicitacao.strftime('%d/%m/%Y') }}</td>
+          <td>{{ r.data_previsao_reposicao.strftime('%d/%m/%Y') }}</td>
+          <td>{{ r.fornecedor or '-' }}</td>
+          <td>{{ r.status }}</td>
+          <td>{{ r.observacoes or '-' }}</td>
+          <td>
+            <a href="{{ url_for('views.edit_reposicao_materia_prima', rp_id=r.id) }}"
+               class="btn btn-sm btn-outline-primary">Editar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Inventário -->
+  <div class="tab-pane fade {% if active_tab=='inv' %}show active{% endif %}"
+       id="inv" role="tabpanel">
+    <h3>Inventário de Produtos Concluídos</h3>
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>ID</th><th>Produto</th><th>Quantidade</th><th>Data Entrada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in inventario %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.produto.codigo_faca }} – {{ item.produto.tipo }}</td>
+          <td>{{ item.quantidade }}</td>
+          <td>{{ item.data_entrada.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% endfor %}
+        {% if inventario|length == 0 %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">
+            Não há itens em inventário.
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Vendas Normais -->
+<div class="tab-pane fade {% if active_tab=='vnorm' %}show active{% endif %}"
+     id="vnorm" role="tabpanel">
+  <a href="{{ url_for('views.nova_venda_normal') }}"
+     class="btn btn-success btn-sm mb-2">+ Venda</a>
+  <table class="table table-striped table-sm">
+    <thead>
+      <tr>
+        <th>ID</th><th>Produto</th><th>Qtd</th>
+        <th>Cliente</th><th>Valor (R$)</th><th>Data Venda</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vendas_normais %}
+      <tr>
+        <td>{{ v.id }}</td>
+        <td>{{ v.produto.codigo_faca }} – {{ v.produto.tipo }}</td>
+        <td>{{ v.quantidade }}</td>
+        <td>{{ v.cliente }}</td>
+        <td>{{ "%.2f"|format(v.valor_venda) }}</td>
+        <td>{{ v.data_venda.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% endfor %}
+      {% if vendas_normais|length == 0 %}
+      <tr>
+        <td colspan="6" class="text-center text-muted">
+          Nenhuma venda registrada.
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+
   <!-- Alertas & Indicadores -->
-  <div class="tab-pane fade" id="alertas" role="tabpanel">
-    <h4>Alertas & Indicadores</h4>
-    <ul class="list-group">
-      <li class="list-group-item">
-        Itens abaixo do mínimo:
-        <strong>{{ itens_baixo_estoque|length }}</strong>
-      </li>
-      <li class="list-group-item">
-        Pedidos vencidos:
-        <strong>{{ pedidos_vencidos|length }}</strong>
-      </li>
-      <li class="list-group-item">
-        Produções em atraso:
-        <strong>{{ producoes_atrasadas|length }}</strong>
-      </li>
-      <li class="list-group-item">
-        Pedidos em andamento:
-        <strong>{{ total_pedidos_andamento }}</strong>
-      </li>
-      <li class="list-group-item">
-        Vendas do mês:
-        <strong>R$ {{ vendas_mes|round(2) }}</strong>
-      </li>
-    </ul>
+  <div class="tab-pane fade {% if active_tab=='alertas' %}show active{% endif %}"
+       id="alertas" role="tabpanel">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <div class="card border-warning">
+          <div class="card-header bg-warning text-white">
+            Itens abaixo do mínimo
+          </div>
+          <ul class="list-group list-group-flush">
+            {% for m in itens_baixo_estoque %}
+            <li class="list-group-item">
+              {{ m.codigo_item }}: {{ m.quantidade_estoque }}
+            </li>
+            {% endfor %}
+            {% if itens_baixo_estoque|length == 0 %}
+            <li class="list-group-item">Nenhum</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="card border-danger">
+          <div class="card-header bg-danger text-white">
+            Pedidos com prazo vencido
+          </div>
+          <div class="card-body">
+            {{ pedidos_vencidos|length }} pedido(s)
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="card border-danger">
+          <div class="card-header bg-danger text-white">
+            Produções em atraso
+          </div>
+          <div class="card-body">
+            {{ producoes_atrasadas|length }} ordem(ns)
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="card border-info">
+          <div class="card-header bg-info text-white">
+            Pedidos em andamento
+          </div>
+          <div class="card-body">
+            {{ total_pedidos_andamento }}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="card border-success">
+          <div class="card-header bg-success text-white">
+            Vendas do mês
+          </div>
+          <div class="card-body">
+            R$ {{ "%.2f"|format(vendas_mes) }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
-
-<script>
-  $('#gestaoTabs a').on('click', function (e) {
-    e.preventDefault();
-    $(this).tab('show');
-  });
-</script>
 {% endblock %}
