@@ -3,16 +3,18 @@
 import re
 import json
 from datetime import date, datetime
-from flask import (Blueprint, render_template, request,redirect, url_for, flash, jsonify)
+from flask import (Blueprint, render_template, request, redirect, url_for, flash, jsonify)
 from sqlalchemy import func
 from . import db
-from .models import (MateriaPrima,ProdutoAcabado,PedidoVenda,OrdemServico,ReposicaoMateriaPrima, ProductImage, Inventario, VendaNormal)
+from .models import (MateriaPrima, ProdutoAcabado, PedidoVenda, OrdemServico, ReposicaoMateriaPrima, ProductImage,
+                     Inventario, VendaNormal)
 from werkzeug.utils import secure_filename
 from flask import current_app
 import os
 from datetime import datetime
 
 views = Blueprint('views', __name__)
+
 
 # ── Dashboard de Gestão ───────────────────────────────────────────
 @views.route('/')
@@ -28,12 +30,12 @@ def gestao():
         active_tab = request.args.get('tab', 'mp')
 
     # — dados principais —
-    materias   = MateriaPrima.query.all()
-    produtos   = ProdutoAcabado.query.all()
+    materias = MateriaPrima.query.all()
+    produtos = ProdutoAcabado.query.all()
     reposicoes = ReposicaoMateriaPrima.query.all()
     inventario = Inventario.query.all()
     vendas_normais = VendaNormal.query.all()
-    ordens     = OrdemServico.query.all()
+    ordens = OrdemServico.query.all()
 
     # — Pedidos/Vendas, com busca por cliente se fornecido —
     if search_cliente:
@@ -49,30 +51,30 @@ def gestao():
         .all()
 
     # — Pedidos vencidos (não entregues) —
-    pedidos_vencidos = PedidoVenda.query\
+    pedidos_vencidos = PedidoVenda.query \
         .filter(
-            PedidoVenda.data_prevista_entrega < date.today(),
-            PedidoVenda.status != 'entregue'
-        ).all()
+        PedidoVenda.data_prevista_entrega < date.today(),
+        PedidoVenda.status != 'entregue'
+    ).all()
 
     # — Produções em atraso: previsão passou e status ≠ 'concluída' —
-    producoes_atrasadas = OrdemServico.query\
+    producoes_atrasadas = OrdemServico.query \
         .filter(
-            OrdemServico.data_prevista_conclusao < date.today(),
-            OrdemServico.status != 'concluída'
-        ).all()
+        OrdemServico.data_prevista_conclusao < date.today(),
+        OrdemServico.status != 'concluída'
+    ).all()
 
     # — Total de pedidos em andamento —
-    total_pedidos_andamento = PedidoVenda.query\
+    total_pedidos_andamento = PedidoVenda.query \
         .filter(PedidoVenda.status.in_(
-            ['recebido', 'produção', 'pronto', 'enviado']
-        )).count()
+        ['recebido', 'produção', 'pronto', 'enviado']
+    )).count()
 
     # — Soma das vendas do mês atual —
     vendas_pedidos_mes = db.session.query(
         func.coalesce(func.sum(PedidoVenda.valor_pedido), 0)
     ).filter(
-        func.extract('year', PedidoVenda.data_pedido)  == datetime.now().year,
+        func.extract('year', PedidoVenda.data_pedido) == datetime.now().year,
         func.extract('month', PedidoVenda.data_pedido) == datetime.now().month
     ).scalar()
 
@@ -105,7 +107,6 @@ def gestao():
         vendas_normais=vendas_normais,
         active_tab=active_tab
     )
-
 
 
 # ── Formulários “+ Novo” ───────────────────────────────────────────
@@ -150,34 +151,37 @@ def novo_produto_acabado():
 
 
 # ── Novo Pedido/Venda ────────────────────────────────────────────
-@views.route('/gestao/pv/novo', methods=['GET','POST'])
+# no topo do arquivo, logo após os imports
+PEDIDO_STATUS = ['recebido', 'produção', 'pronto', 'enviado', 'entregue']
+
+@views.route('/gestao/pv/novo', methods=['GET', 'POST'])
 def novo_pedido_venda():
     produtos = ProdutoAcabado.query.all()
     if request.method == 'POST':
-        numero_pedido          = request.form['numero_pedido']
-        nome_cliente           = request.form['nome_cliente']    # ← capturar
-        produto_id             = int(request.form['produto_id'])
-        quantidade             = int(request.form['quantidade'])
-        personalizacao         = bool(request.form.get('personalizacao'))
-        detalhes_personalizacao= request.form.get('detalhes_personalizacao')
-        data_pedido            = date.fromisoformat(request.form['data_pedido'])
-        status                 = request.form['status']
-        data_prevista_entrega  = date.fromisoformat(request.form['data_prevista_entrega'])
-        valor_pedido           = float(request.form['valor_pedido'])
-        observacoes            = request.form.get('observacoes')
+        numero_pedido = request.form['numero_pedido']
+        nome_cliente = request.form['nome_cliente']  # ← capturar
+        produto_id = int(request.form['produto_id'])
+        quantidade = int(request.form['quantidade'])
+        personalizacao = bool(request.form.get('personalizacao'))
+        detalhes_personalizacao = request.form.get('detalhes_personalizacao')
+        data_pedido = date.fromisoformat(request.form['data_pedido'])
+        status = request.form['status']
+        data_prevista_entrega = date.fromisoformat(request.form['data_prevista_entrega'])
+        valor_pedido = float(request.form['valor_pedido'])
+        observacoes = request.form.get('observacoes')
 
         solicitacao = f"{ProdutoAcabado.query.get(produto_id).codigo_faca} × {quantidade}"
         ped = PedidoVenda(
-            numero_pedido           = numero_pedido,
-            nome_cliente            = nome_cliente,
-            produtos_solicitados    = solicitacao,
-            personalizacao          = personalizacao,
-            detalhes_personalizacao = detalhes_personalizacao,
-            data_pedido             = data_pedido,
-            status                  = status,
-            data_prevista_entrega   = data_prevista_entrega,
-            valor_pedido            = valor_pedido,
-            observacoes             = observacoes
+            numero_pedido=numero_pedido,
+            nome_cliente=nome_cliente,
+            produtos_solicitados=solicitacao,
+            personalizacao=personalizacao,
+            detalhes_personalizacao=detalhes_personalizacao,
+            data_pedido=data_pedido,
+            status=status,
+            data_prevista_entrega=data_prevista_entrega,
+            valor_pedido=valor_pedido,
+            observacoes=observacoes
         )
         db.session.add(ped)
         db.session.commit()
@@ -186,35 +190,37 @@ def novo_pedido_venda():
 
     return render_template(
         'novo_pedido_venda.html',
-
         produtos=produtos,
-        date=date
+        date=date,
+        statuses=PEDIDO_STATUS
     )
 
+
+
 # ── Nova Ordem de Serviço ─────────────────────────────────────────
-@views.route('/gestao/os/novo', methods=['GET','POST'])
+@views.route('/gestao/os/novo', methods=['GET', 'POST'])
 def nova_ordem_servico():
     produtos = ProdutoAcabado.query.all()
 
     if request.method == 'POST':
         # coleta o form
-        numero_os               = request.form['numero_os']
-        produto_id              = int(request.form['produto_id'])
-        quantidade              = int(request.form['quantidade'])
-        materiais_necessarios   = request.form['materiais_necessarios']
-        data_inicio             = date.fromisoformat(request.form['data_inicio_producao'])
+        numero_os = request.form['numero_os']
+        produto_id = int(request.form['produto_id'])
+        quantidade = int(request.form['quantidade'])
+        materiais_necessarios = request.form['materiais_necessarios']
+        data_inicio = date.fromisoformat(request.form['data_inicio_producao'])
         data_prevista_conclusao = date.fromisoformat(request.form['data_prevista_conclusao'])
-        responsavel             = request.form['responsavel']
+        responsavel = request.form['responsavel']
 
         # criar sem 'vendido'
         os_ = OrdemServico(
-            numero_os               = numero_os,
-            produto_id              = produto_id,
-            quantidade              = quantidade,
-            materiais_necessarios   = materiais_necessarios,
-            data_inicio_producao    = data_inicio,
-            data_prevista_conclusao = data_prevista_conclusao,
-            responsavel             = responsavel
+            numero_os=numero_os,
+            produto_id=produto_id,
+            quantidade=quantidade,
+            materiais_necessarios=materiais_necessarios,
+            data_inicio_producao=data_inicio,
+            data_prevista_conclusao=data_prevista_conclusao,
+            responsavel=responsavel
             # status padrão já vem do model: 'produção'
         )
         db.session.add(os_)
@@ -236,7 +242,6 @@ def nova_ordem_servico():
         produtos=produtos,
         date=date
     )
-
 
 
 @views.route('/gestao/reposicao/novo', methods=['GET', 'POST'])
@@ -270,7 +275,7 @@ def nova_reposicao_materia_prima():
         return redirect(url_for('views.gestao'))
 
     materias = MateriaPrima.query.all()
-    return render_template('nova_reposicao.html',materias=materias,date=date)
+    return render_template('nova_reposicao.html', materias=materias, date=date)
 
 
 @views.route('/gestao/reposicao/edit/<int:rp_id>', methods=['GET', 'POST'])
@@ -294,7 +299,7 @@ def edit_reposicao_materia_prima(rp_id):
         flash(f'Status da reposição #{rp.id} atualizado para "{rp.status}" e estoque ajustado.', 'success')
         return redirect(url_for('views.gestao'))
 
-    return render_template('edit_reposicao.html',  reposicao=rp)
+    return render_template('edit_reposicao.html', reposicao=rp)
 
 
 @views.route('/gestao/pv/edit/<int:ped_id>', methods=['GET', 'POST'])
@@ -312,13 +317,17 @@ def edit_pedido_venda(ped_id):
         pedido=ped
     )
 
+
 # only needed for image uploads
-ALLOWED_EXTENSIONS = {'png','jpg','jpeg','gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+
 def allowed_file(filename):
     return (
-        '.' in filename and
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+            '.' in filename and
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
     )
+
 
 # Listar + upload + delete + set primary
 @views.route('/gestao/pa/<int:prod_id>/images', methods=['GET', 'POST'])
@@ -348,7 +357,6 @@ def manage_product_images(prod_id):
     )
 
 
-
 @views.route('/gestao/pa/<int:prod_id>/images/delete/<int:img_id>', methods=['POST'])
 def delete_product_image(prod_id, img_id):
     img = ProductImage.query.get_or_404(img_id)
@@ -374,9 +382,9 @@ def set_primary_image(prod_id, img_id):
     return redirect(url_for('views.manage_product_images', prod_id=prod_id))
 
 
-@views.route('/gestao/os/edit/<int:os_id>', methods=['GET','POST'])
+@views.route('/gestao/os/edit/<int:os_id>', methods=['GET', 'POST'])
 def edit_ordem_servico(os_id):
-    os_         = OrdemServico.query.get_or_404(os_id)
+    os_ = OrdemServico.query.get_or_404(os_id)
     prev_status = os_.status
 
     if request.method == 'POST':
@@ -393,8 +401,8 @@ def edit_ordem_servico(os_id):
             else:
                 # cria novo registro
                 inv = Inventario(
-                    produto_id = os_.produto_id,
-                    quantidade = os_.quantidade
+                    produto_id=os_.produto_id,
+                    quantidade=os_.quantidade
                 )
                 db.session.add(inv)
             # remove a OS concluída
@@ -412,16 +420,17 @@ def edit_ordem_servico(os_id):
 
                            os=os_)
 
-@views.route('/gestao/venda_normal/novo', methods=['GET','POST'])
+
+@views.route('/gestao/venda_normal/novo', methods=['GET', 'POST'])
 def nova_venda_normal():
     produtos = ProdutoAcabado.query.all()
 
     if request.method == 'POST':
-        produto_id  = int(request.form['produto_id'])
-        quantidade  = int(request.form['quantidade'])
-        cliente     = request.form['cliente']
+        produto_id = int(request.form['produto_id'])
+        quantidade = int(request.form['quantidade'])
+        cliente = request.form['cliente']
         valor_venda = float(request.form['valor_venda'])
-        data_venda  = date.fromisoformat(request.form['data_venda'])
+        data_venda = date.fromisoformat(request.form['data_venda'])
 
         # 1) busca o registro de inventário
         inv = Inventario.query.filter_by(produto_id=produto_id).first()
@@ -437,11 +446,11 @@ def nova_venda_normal():
 
         # 4) registra a venda
         venda = VendaNormal(
-            produto_id  = produto_id,
-            cliente     = cliente,
-            quantidade  = quantidade,
-            valor_venda = valor_venda,
-            data_venda  = data_venda
+            produto_id=produto_id,
+            cliente=cliente,
+            quantidade=quantidade,
+            valor_venda=valor_venda,
+            data_venda=data_venda
         )
         db.session.add(venda)
 
@@ -462,13 +471,13 @@ def edit_materia_prima(mp_id):
 
     if request.method == 'POST':
         # Atualiza o fornecedor (e qualquer outro campo que queira permitir editar)
-        materia.fornecedor          = request.form['fornecedor']
-        materia.tipo_material       = request.form['tipo_material']
-        materia.unidade             = request.form['unidade']
-        materia.quantidade_estoque  = float(request.form['quantidade_estoque'])
-        materia.ponto_reposicao     = float(request.form['ponto_reposicao'])
-        materia.data_ultima_entrada = request.form['data_ultima_entrada']
-        materia.observacoes         = request.form.get('observacoes')
+        materia.fornecedor = request.form['fornecedor']
+        materia.tipo_material = request.form['tipo_material']
+        materia.unidade = request.form['unidade']
+        materia.quantidade_estoque = float(request.form['quantidade_estoque'])
+        materia.ponto_reposicao = float(request.form['ponto_reposicao'])
+        materia.data_ultima_entrada = date.fromisoformat(request.form['data_ultima_entrada'])
+        materia.observacoes = request.form.get('observacoes')
 
         db.session.commit()
         flash('Matéria-prima atualizada com sucesso!', 'success')

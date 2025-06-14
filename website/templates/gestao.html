@@ -115,7 +115,7 @@
   <div class="tab-pane fade {% if active_tab=='pv' %}show active{% endif %}"
        id="pv" role="tabpanel">
     <a href="{{ url_for('views.novo_pedido_venda') }}"
-       class="btn btn-success btn-sm mb-2">+ Pedido / Venda</a>
+       class="btn btn-success btn-sm mb-2">+ Pedido</a>
     <form class="form-inline mb-2" method="GET"
           action="{{ url_for('views.gestao') }}">
       <input type="hidden" name="tab" value="pv">

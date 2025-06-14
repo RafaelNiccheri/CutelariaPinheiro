@@ -11,14 +11,78 @@
     rel="stylesheet"
     href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
   >
-  <!-- Your custom CSS (loads after, so it won’t override the navbar) -->
+  <!-- Your custom CSS (loads after, so it won't override the navbar) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <style>
+    /* Custom brown navbar styling */
+    .navbar-brown {
+      background: #8B4513;
+      border-bottom: 2px solid #654321;
+    }
+
+    .navbar-brown .navbar-brand {
+      color: #F5DEB3 !important;
+      font-weight: bold;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .navbar-brown .navbar-brand:hover {
+      color: #FFFFFF !important;
+    }
+
+    .navbar-brown .nav-link {
+      color: #F5DEB3 !important;
+      font-weight: 500;
+    }
+
+    .navbar-brown .nav-link:hover {
+      color: #FFFFFF !important;
+    }
+
+    .navbar-brown .navbar-toggler {
+      border-color: #F5DEB3;
+    }
+
+    .navbar-brown .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28245, 222, 179, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    .cutelaria-icon {
+      width: 40px;
+      height: 40px;
+      background: #8B4513;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+    }
+
+    .cutelaria-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 2px;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Dark navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{{ url_for('views.gestao') }}">Cutelaria</a>
+  <!-- Brown themed navbar -->
+  <nav class="navbar navbar-expand-lg navbar-brown">
+    <a class="navbar-brand" href="{{ url_for('views.gestao') }}">
+      <div class="cutelaria-icon">
+        <img src="/static/images/logo.png" alt="Logo">
+      </div>
+      <div>
+        <div>CUTELARIA</div>
+        <div style="font-size: 0.8rem; font-weight: normal;">PINHEIRO</div>
+      </div>
+    </a>
     <button
       class="navbar-toggler"
       type="button"
